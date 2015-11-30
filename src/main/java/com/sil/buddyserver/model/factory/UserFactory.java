@@ -4,7 +4,7 @@ import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.model.security.CurrentUser;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-public class CurrentUserFactory {
+public class UserFactory {
 
     public static CurrentUser create(User user) {
         return new CurrentUser(

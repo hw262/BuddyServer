@@ -11,6 +11,7 @@ import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
 import com.sil.buddyserver.security.TokenUtils;
+import com.sil.buddyserver.service.FlagService;
 import com.sil.buddyserver.service.UserService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class FlagController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FlagService flagService;
 
     @Autowired
     private CheckValidator checkValidator;
@@ -60,4 +64,5 @@ public class FlagController {
         responsevalue.setResponsevalue(new ErrorCode().Success());
         return responsevalue;
     }
+
 }

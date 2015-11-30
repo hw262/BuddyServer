@@ -13,5 +13,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Han
  */
 public interface FlagRepository extends JpaRepository<Flag, Long> {
+
+    public Flag findByPidAndUid(long pid, long uid);
+
+    public long countByPidAndUid(long pid, long uid);
     
 }

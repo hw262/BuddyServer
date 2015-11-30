@@ -6,9 +6,9 @@
 package com.sil.buddyserver.service;
 
 import com.sil.buddyserver.domain.entity.User;
-import com.sil.buddyserver.model.factory.CurrentUserFactory;
+import com.sil.buddyserver.model.factory.UserFactory;
+import com.sil.buddyserver.model.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -28,12 +28,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public CurrentUser loadUserByUsername(String username) throws UsernameNotFoundException {
 
         User user = userService.findUserByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User " + username + " not found");
         }
-        return CurrentUserFactory.create(user);
+        return UserFactory.create(user);
     }
 }

@@ -48,4 +48,8 @@ public class AttentionService {
         return attentionRepository.save(attention);
     }
 
+    public long countByPidAndUid(long pid, long uid) {
+        return attentionRepository.countByPidAndUid(pid, uid);
+    }
+
 }

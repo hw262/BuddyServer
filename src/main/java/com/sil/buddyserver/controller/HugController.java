@@ -8,19 +8,22 @@ package com.sil.buddyserver.controller;
 import com.sil.buddyserver.domain.entity.Hug;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.domain.entity.Post;
+import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.domain.validator.CheckValidator;
+import com.sil.buddyserver.model.security.CurrentUser;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
 import com.sil.buddyserver.security.TokenUtils;
 import com.sil.buddyserver.service.HugService;
 import com.sil.buddyserver.service.PostService;
+import com.sil.buddyserver.service.UserDetailsServiceImpl;
 import com.sil.buddyserver.service.UserService;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,29 +49,40 @@ public class HugController {
 
     @Autowired
     private CheckValidator checkValidator;
-            
+    
+
     @Value("${buddyserver.token.header}")
     private String tokenHeader;
 
     @RequestMapping(value = "/hug", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseValue hug(@RequestBody Hug hug, @RequestHeader HttpHeaders headers) {
+    public ResponseValue hug(@RequestBody ListRequest listRequest, @RequestHeader HttpHeaders headers) {
 
         ResponseValue responsevalue = new ResponseValue();
         List<String> token = headers.get(tokenHeader);
         String username = TokenUtils.getUsernameFromToken(token.get(0));
+        User currentUser = userService.findUserByUsername(username);
 
         try {
-            Date date = new Date();
-            hug.setDate_time(new Timestamp(date.getTime()));
-            hug.setUsername(username);
-            hug.setUid(userService.findUserByUsername(username).getId());
-            Post postuser = postService.findPostById(hug.getPid());
-            if (!checkValidator.checkIfHugged(hug.getPid(), username) && postuser.getUid() != hug.getUid()) {
-                hugService.create(hug);
+            Post post = postService.findPostById(listRequest.getPid());
+
+            if (!Objects.equals(post.getUid(), currentUser.getId())) {
+
+                if (!checkValidator.checkIfHugged(listRequest.getPid(), username)) {
+                    
+                    hugService.create(listRequest.getPid(), currentUser.getId());
+                    
+                } else {
+
+                    responsevalue.setResponsevalue(new ErrorCode().Fail());
+                    return responsevalue;
+
+                }
             } else {
-                responsevalue.setResponsevalue(new ErrorCode().Fail());
+
+                responsevalue.setResponsevalue(new ErrorCode().CantHugYourself());
                 return responsevalue;
+
             }
         } catch (Exception ex) {
             responsevalue.setResponsevalue(new ErrorCode().Fail());
@@ -80,7 +94,8 @@ public class HugController {
 
     @RequestMapping(value = "/hug/list", method = RequestMethod.POST)
     @ResponseBody
-    public List<Hug> huglist(@RequestBody ListRequest listrequest) {
+    public List<Hug> huglist(@RequestBody ListRequest listrequest
+    ) {
 
         List<Hug> hugList = hugService.findAll(listrequest);
         return hugList;

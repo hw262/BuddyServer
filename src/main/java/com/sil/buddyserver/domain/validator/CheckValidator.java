@@ -5,7 +5,8 @@
  */
 package com.sil.buddyserver.domain.validator;
 
-import com.sil.buddyserver.repository.AttentionRepository;
+import com.sil.buddyserver.service.AttentionService;
+import com.sil.buddyserver.service.FlagService;
 import com.sil.buddyserver.service.HugService;
 import com.sil.buddyserver.service.UserService;
 import static java.lang.Boolean.FALSE;
@@ -22,13 +23,16 @@ public class CheckValidator {
 
     @Autowired
     private HugService hugService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
-    private AttentionRepository attentionRepository;
-    
+    private AttentionService attentionService;
+
+    @Autowired
+    private FlagService flagService;
+
     public boolean checkIfHugged(long pid, String username) {
         long uid = userService.findUserByUsername(username).getId();
         long exist = hugService.countByPidAndUid(pid, uid);
@@ -37,13 +41,23 @@ public class CheckValidator {
         }
         return FALSE;
     }
-    
+
     public boolean checkIfAttentioned(long pid, String username) {
         long uid = userService.findUserByUsername(username).getId();
-        long exist = attentionRepository.countByPidAndUid(pid, uid);
+        long exist = attentionService.countByPidAndUid(pid, uid);
         if (exist > 0) {
             return TRUE;
         }
         return FALSE;
     }
+
+    public boolean checkIfFlaged(long pid, String username) {
+        long uid = userService.findUserByUsername(username).getId();
+        long exist = flagService.countByPidAndUid(pid, uid);
+        if (exist > 0) {
+            return TRUE;
+        }
+        return FALSE;
+    }
+
 }

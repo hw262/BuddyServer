@@ -6,17 +6,15 @@
 package com.sil.buddyserver.controller;
 
 import com.sil.buddyserver.domain.entity.Profile;
-import com.sil.buddyserver.domain.entity.User;
-import com.sil.buddyserver.model.ProfileModel;
+import com.sil.buddyserver.model.entity.ProfileModel;
 import com.sil.buddyserver.model.list.ListRequest;
-import com.sil.buddyserver.repository.ProfileRepository;
+import com.sil.buddyserver.model.security.CurrentUser;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
-import com.sil.buddyserver.security.TokenUtils;
-import com.sil.buddyserver.service.UserService;
-import java.util.List;
+import com.sil.buddyserver.service.ProfileService;
+import com.sil.buddyserver.service.TokenService;
+import com.sil.buddyserver.service.UserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,26 +31,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProfileController {
 
-    @Value("${buddyserver.token.header}")
-    private String tokenHeader;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Autowired
-    private UserService userService;
+    private ProfileService profileService;
     
     @Autowired
-    private ProfileRepository profileRepository;
+    private TokenService tokenService;
 
     @RequestMapping(value = "/profile/edit", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<?> editProfile(@RequestBody Profile profile, @RequestHeader HttpHeaders headers) {
-
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
-
+        
+        String username = tokenService.GetUserName(headers);
+        
         try {
-            User user = userService.findUserByUsername(username);
-            profile.setUid(user.getId());
-            profileRepository.save(profile);
+            CurrentUser currentUser = userDetailsService.loadUserByUsername(username);
+            profile.setUid(currentUser.getId());
+            profileService.save(profile);
         } catch (Exception ex) {
             return ResponseEntity.ok(new ResponseValue(new ErrorCode().Fail()));
         }
@@ -64,19 +61,19 @@ public class ProfileController {
     @ResponseBody
     public ResponseEntity<?> viewProfile(@RequestBody ListRequest listRequest, @RequestHeader HttpHeaders headers) {
 
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
-        long uid = listRequest.getUid();
-        Profile profile;
+        String username = tokenService.GetUserName(headers);
+        Long uid = listRequest.getUid();
+        ProfileModel profileModel;
+        
         try {
             if (uid == 0) {
-                User user = userService.findUserByUsername(username);
-                uid = user.getId();
+                CurrentUser currentUser = userDetailsService.loadUserByUsername(username);
+                uid = currentUser.getId();
             }
-            profile = profileRepository.findByUid(uid);
+            profileModel = profileService.findByUid(uid);
         } catch (Exception ex) {
             return ResponseEntity.ok(new ResponseValue(new ErrorCode().UserNotExist()));
         }
-        return ResponseEntity.ok(new ProfileModel(profile));
+        return ResponseEntity.ok(profileModel);
     }
 }

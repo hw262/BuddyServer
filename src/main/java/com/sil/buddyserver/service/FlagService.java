@@ -5,7 +5,7 @@
  */
 package com.sil.buddyserver.service;
 
-import com.sil.buddyserver.domain.entity.Attention;
+import com.sil.buddyserver.domain.entity.Flag;
 import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.repository.FlagRepository;
 import com.sil.buddyserver.repository.PostRepository;
@@ -25,26 +25,27 @@ public class FlagService {
     @Autowired
     private PostRepository postRepository;
 
-    public Attention findByPidAndUid(long pid, long uid) {
-        return attentionRepository.findByPidAndUid(pid, uid);
+    public Flag findByPidAndUid(long pid, long uid) {
+        return flagRepository.findByPidAndUid(pid, uid);
     }
 
     public void cancel(long pid, long uid) {
-        Attention attention = attentionRepository.findByPidAndUid(pid, uid);
-        attentionRepository.delete(attention.getAid());
+        Flag flag = flagRepository.findByPidAndUid(pid, uid);
+        flagRepository.delete(flag.getFid());
         Post post = postRepository.findByPid(pid);
-        post.setAttention(post.getAttention() - 1);
-        postRepository.save(post);
+        post.setFlag(post.getFlag() - 1);
     }
 
-    public Attention create(long pid, long uid) {
-        Attention attention = new Attention();
-        attention.setPid(pid);
-        attention.setUid(uid);
+    public void create(long pid, long uid) {
+        Flag flag = new Flag();
+        flag.setPid(pid);
+        flag.setUid(uid);
         Post post = postRepository.findByPid(pid);
-        post.setAttention(post.getAttention() + 1);
-        postRepository.save(post);
-        return attentionRepository.save(attention);
+        post.setFlag(post.getFlag() + 1);
+    }
+
+    public long countByPidAndUid(long pid, long uid) {
+        return flagRepository.countByPidAndUid(pid, uid);
     }
 
 }

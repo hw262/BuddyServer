@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.sil.buddyserver.model;
+package com.sil.buddyserver.model.entity;
 
 /**
  *
  * @author Han
  */
-public class LoginResponse {
+public class LoginModel {
 
     private String responsevalue;
     private String token;

@@ -7,7 +7,7 @@ package com.sil.buddyserver.service;
 
 import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.domain.entity.User;
-import com.sil.buddyserver.model.PostModel;
+import com.sil.buddyserver.model.entity.PostModel;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.repository.PostRepository;
 import java.sql.Timestamp;
@@ -45,7 +45,6 @@ public class PostService {
         ArrayList postList = new ArrayList();
         
         for (int i = 0; i < pList.size(); i++) {
-            System.out.println(pList.get(i).toString());
             postList.add(i, new PostModel(pList.get(i)));
         }
 

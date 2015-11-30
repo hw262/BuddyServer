@@ -6,6 +6,7 @@
 package com.sil.buddyserver.service;
 
 import com.sil.buddyserver.domain.entity.Profile;
+import com.sil.buddyserver.model.entity.ProfileModel;
 import com.sil.buddyserver.repository.ProfileRepository;
 import java.text.SimpleDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +18,25 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ProfileService {
+
     @Autowired
     private ProfileRepository profileRepository;
-    
-    public Profile create(){
-        Profile profile = new Profile();
-        SimpleDateFormat birthDate = new SimpleDateFormat("yyyy-MM-dd"); 
-        profile.setBirth_date(birthDate.format(1980-01-01));
+
+    public Profile save(Profile profile) {
         return profileRepository.save(profile);
     }
-            
+
+    public Profile create() {
+        Profile profile = new Profile();
+        SimpleDateFormat birthDate = new SimpleDateFormat("yyyy-MM-dd");
+        profile.setBirth_date(birthDate.format(1980 - 01 - 01));
+        return profileRepository.save(profile);
+    }
+
+    public ProfileModel findByUid(long uid) {
+        Profile profile = profileRepository.findByUid(uid);
+        ProfileModel profileModel = new ProfileModel(profile);
+        return profileModel;
+    }
+
 }

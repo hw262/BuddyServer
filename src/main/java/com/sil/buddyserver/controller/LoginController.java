@@ -6,7 +6,7 @@
 package com.sil.buddyserver.controller;
 
 import com.sil.buddyserver.domain.entity.User;
-import com.sil.buddyserver.model.LoginResponse;
+import com.sil.buddyserver.model.entity.LoginModel;
 import com.sil.buddyserver.model.authentication.AuthenticationRequest;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
@@ -61,7 +61,7 @@ public class LoginController {
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(user.getUsername());
             String token = TokenUtils.generateToken(userDetails);
-            LoginResponse loginResponse = new LoginResponse();
+            LoginModel loginResponse = new LoginModel();
             loginResponse.setToken(token);
             loginResponse.setResponsevalue(new ErrorCode().Success());
             return ResponseEntity.ok(loginResponse);

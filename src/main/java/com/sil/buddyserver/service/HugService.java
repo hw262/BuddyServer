@@ -6,8 +6,13 @@
 package com.sil.buddyserver.service;
 
 import com.sil.buddyserver.domain.entity.Hug;
+import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.repository.HugRepository;
+import com.sil.buddyserver.repository.PostRepository;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +29,9 @@ public class HugService {
 
     @Autowired
     private HugRepository hugRepository;
+    
+    @Autowired
+    private PostRepository postRepository;
 
     public long countByPidAndUid(long pid, long uid) {
         return hugRepository.countByPidAndUid(pid, uid);
@@ -33,7 +41,13 @@ public class HugService {
         return hugRepository.countByPid(pid);
     }
 
-    public Hug create(Hug hug) {
+    public Hug create(long pid, long uid) {
+        Date date = Calendar.getInstance().getTime();
+        Hug hug = new Hug();
+        hug.setDate_time(new Timestamp(date.getTime()));
+        hug.setUid(uid);
+        Post post = postRepository.findByPid(pid);
+        post.setHug(post.getHug()+1);
         return hugRepository.save(hug);
     }
 

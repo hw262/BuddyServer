@@ -46,4 +46,8 @@ public class ErrorCode {
         return "900";
     }    
 
+    public String CantHugYourself() {
+        return "106";
+    }
+
 }
