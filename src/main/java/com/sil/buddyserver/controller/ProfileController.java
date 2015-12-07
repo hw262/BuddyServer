@@ -6,14 +6,14 @@
 package com.sil.buddyserver.controller;
 
 import com.sil.buddyserver.domain.entity.Profile;
+import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.model.entity.ProfileModel;
 import com.sil.buddyserver.model.list.ListRequest;
-import com.sil.buddyserver.model.security.CurrentUser;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
 import com.sil.buddyserver.service.ProfileService;
 import com.sil.buddyserver.service.TokenService;
-import com.sil.buddyserver.service.UserDetailsService;
+import com.sil.buddyserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -32,22 +32,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController {
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserService userService;
 
     @Autowired
     private ProfileService profileService;
-    
+
     @Autowired
     private TokenService tokenService;
 
     @RequestMapping(value = "/profile/edit", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<?> editProfile(@RequestBody Profile profile, @RequestHeader HttpHeaders headers) {
-        
-        String username = tokenService.GetUserName(headers);
-        
+
+        String username = tokenService.getUserName(headers);
+
         try {
-            CurrentUser currentUser = userDetailsService.loadUserByUsername(username);
+            User currentUser = userService.findUserByUsername(username);
             profile.setUid(currentUser.getId());
             profileService.save(profile);
         } catch (Exception ex) {
@@ -61,19 +61,20 @@ public class ProfileController {
     @ResponseBody
     public ResponseEntity<?> viewProfile(@RequestBody ListRequest listRequest, @RequestHeader HttpHeaders headers) {
 
-        String username = tokenService.GetUserName(headers);
+        String username = tokenService.getUserName(headers);
         Long uid = listRequest.getUid();
-        ProfileModel profileModel;
-        
+        ProfileModel profile;
         try {
             if (uid == 0) {
-                CurrentUser currentUser = userDetailsService.loadUserByUsername(username);
+                User currentUser = userService.findUserByUsername(username);
                 uid = currentUser.getId();
             }
-            profileModel = profileService.findByUid(uid);
+            profile = profileService.findByUid(uid);
+            profile.setUsername(username);
+            
         } catch (Exception ex) {
-            return ResponseEntity.ok(new ResponseValue(new ErrorCode().UserNotExist()));
+            return ResponseEntity.ok(ex);
         }
-        return ResponseEntity.ok(profileModel);
+        return ResponseEntity.ok(profile);
     }
 }

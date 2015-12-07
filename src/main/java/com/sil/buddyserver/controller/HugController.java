@@ -10,20 +10,17 @@ import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.domain.validator.CheckValidator;
-import com.sil.buddyserver.model.security.CurrentUser;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
-import com.sil.buddyserver.security.TokenUtils;
 import com.sil.buddyserver.service.HugService;
 import com.sil.buddyserver.service.PostService;
-import com.sil.buddyserver.service.UserDetailsServiceImpl;
+import com.sil.buddyserver.service.TokenService;
 import com.sil.buddyserver.service.UserService;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,56 +46,62 @@ public class HugController {
 
     @Autowired
     private CheckValidator checkValidator;
-    
 
-    @Value("${buddyserver.token.header}")
-    private String tokenHeader;
+    @Autowired
+    private TokenService tokenService;
 
     @RequestMapping(value = "/hug", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseValue hug(@RequestBody ListRequest listRequest, @RequestHeader HttpHeaders headers) {
+    public ResponseEntity<?> hug(
+            @RequestBody ListRequest listRequest,
+            @RequestHeader HttpHeaders headers) {
 
-        ResponseValue responsevalue = new ResponseValue();
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
+        String username = tokenService.getUserName(headers);
+
         User currentUser = userService.findUserByUsername(username);
 
         try {
+
             Post post = postService.findPostById(listRequest.getPid());
 
             if (!Objects.equals(post.getUid(), currentUser.getId())) {
 
                 if (!checkValidator.checkIfHugged(listRequest.getPid(), username)) {
-                    
+
                     hugService.create(listRequest.getPid(), currentUser.getId());
-                    
+
                 } else {
-
-                    responsevalue.setResponsevalue(new ErrorCode().Fail());
-                    return responsevalue;
-
+                    hugService.cancel(listRequest.getPid(), currentUser.getId());
                 }
             } else {
 
-                responsevalue.setResponsevalue(new ErrorCode().CantHugYourself());
-                return responsevalue;
+                return ResponseEntity.ok(new ResponseValue(new ErrorCode().CantHugYourself()));
 
             }
         } catch (Exception ex) {
-            responsevalue.setResponsevalue(new ErrorCode().Fail());
-            return responsevalue;
+
+            return ResponseEntity.ok(new ResponseValue(new ErrorCode().Fail()));
         }
-        responsevalue.setResponsevalue(new ErrorCode().Success());
-        return responsevalue;
+        return ResponseEntity.ok(new ResponseValue(new ErrorCode().Success()));
     }
 
     @RequestMapping(value = "/hug/list", method = RequestMethod.POST)
     @ResponseBody
-    public List<Hug> huglist(@RequestBody ListRequest listrequest
-    ) {
+    public ResponseEntity<?> huglist(
+            @RequestBody ListRequest listRequest,
+            @RequestHeader HttpHeaders headers) {
 
-        List<Hug> hugList = hugService.findAll(listrequest);
-        return hugList;
+        String username = tokenService.getUserName(headers);
+        
+        User currentUser = userService.findUserByUsername(username);
+        Post post = postService.findPostById(listRequest.getPid());
+        
+        if (Objects.equals(post.getUid(), currentUser.getId())) {
+            List<Hug> hugList = hugService.findAll(listRequest);
+            return ResponseEntity.ok(hugList);
+        }
+        
+        return ResponseEntity.ok(new ResponseValue(new ErrorCode().Fail()));
     }
 
 }

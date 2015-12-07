@@ -21,7 +21,7 @@ public class TokenService {
     @Value("${buddyserver.token.header}")
     private String tokenHeader;
 
-    public String GetUserName(HttpHeaders headers) {
+    public String getUserName(HttpHeaders headers) {
         List<String> token = headers.get(tokenHeader);
         String username = TokenUtils.getUsernameFromToken(token.get(0));
         return username;

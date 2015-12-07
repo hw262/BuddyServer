@@ -6,6 +6,7 @@
 package com.sil.buddyserver.service;
 
 import com.sil.buddyserver.domain.entity.Profile;
+import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.model.entity.ProfileModel;
 import com.sil.buddyserver.repository.ProfileRepository;
 import java.text.SimpleDateFormat;
@@ -26,10 +27,18 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public Profile create() {
+    public Profile create(User user) {
         Profile profile = new Profile();
+        profile.setUid(user.getId());
         SimpleDateFormat birthDate = new SimpleDateFormat("yyyy-MM-dd");
-        profile.setBirth_date(birthDate.format(1980 - 01 - 01));
+        profile.setBirth_date(birthDate.format(1980-01-01));
+        profile.setGender("0");
+        profile.setPersonal_intro("0");
+        profile.setSexuality("0");
+        profile.setBirth_date_auth(1);
+        profile.setGender_auth(1);
+        profile.setRace_auth(1);
+        profile.setSexuality_auth(1);
         return profileRepository.save(profile);
     }
 

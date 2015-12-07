@@ -6,8 +6,6 @@
 package com.sil.buddyserver.model.entity;
 
 import com.sil.buddyserver.domain.entity.Profile;
-import com.sil.buddyserver.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -15,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ProfileModel {
 
-    @Autowired
-    private UserService userService;
 
     private String username;
 
@@ -32,15 +28,9 @@ public class ProfileModel {
 
     private String sexuality;
 
-    public ProfileModel() {
-
-    }
-
     public ProfileModel(Profile profile) {
-        
-        this.setUsername(userService.findUserById(profile.getUid()).getUsername());
+
         this.setPersonal_intro(profile.getPersonal_intro());
-        
         this.setAvatar(profile.getAvatar());
         if (profile.getBirth_date_auth() == 1) {
             this.setBirth_date(profile.getBirth_date());
@@ -48,7 +38,6 @@ public class ProfileModel {
         if (profile.getGender_auth() == 1) {
             this.setGender(profile.getGender());
         }
-
         if (profile.getRace_auth() == 1) {
             this.setRace(profile.getRace());
         }
@@ -84,5 +73,34 @@ public class ProfileModel {
     public void setSexuality(String sexuality) {
         this.sexuality = sexuality;
     }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public int getAvatar() {
+        return avatar;
+    }
+
+    public String getPersonal_intro() {
+        return personal_intro;
+    }
+
+    public String getBirth_date() {
+        return birth_date;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public int getRace() {
+        return race;
+    }
+
+    public String getSexuality() {
+        return sexuality;
+    }
+    
 
 }

@@ -10,6 +10,7 @@ import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.repository.HugRepository;
 import com.sil.buddyserver.repository.PostRepository;
+import com.sil.buddyserver.repository.UserRepository;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,6 +33,9 @@ public class HugService {
     
     @Autowired
     private PostRepository postRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     public long countByPidAndUid(long pid, long uid) {
         return hugRepository.countByPidAndUid(pid, uid);
@@ -41,14 +45,17 @@ public class HugService {
         return hugRepository.countByPid(pid);
     }
 
-    public Hug create(long pid, long uid) {
+    public void create(long pid, long uid) {
         Date date = Calendar.getInstance().getTime();
         Hug hug = new Hug();
         hug.setDate_time(new Timestamp(date.getTime()));
         hug.setUid(uid);
+        hug.setPid(pid);
+        hug.setUsername(userRepository.findOne(uid).getUsername());
+        hugRepository.save(hug);
         Post post = postRepository.findByPid(pid);
         post.setHug(post.getHug()+1);
-        return hugRepository.save(hug);
+        postRepository.save(post);
     }
 
     public List<Hug> findAll(ListRequest listRequest) {
@@ -56,6 +63,14 @@ public class HugService {
         Page<Hug> hugPage = hugRepository.findByPid(listRequest.getPid(), page1);
         List<Hug> hugList = hugPage.getContent();
         return hugList;
+    }
+
+    public void cancel(long pid, long id) {
+        Hug hug = hugRepository.findByPidAndUid(pid, id);
+        hugRepository.delete(hug.getHid());
+        Post post = postRepository.findByPid(pid);
+        post.setHug(post.getHug()-1);
+        postRepository.save(post);
     }
 
 }

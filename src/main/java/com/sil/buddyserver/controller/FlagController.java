@@ -10,13 +10,12 @@ import com.sil.buddyserver.domain.validator.CheckValidator;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.response.ResponseValue;
-import com.sil.buddyserver.security.TokenUtils;
 import com.sil.buddyserver.service.FlagService;
+import com.sil.buddyserver.service.TokenService;
 import com.sil.buddyserver.service.UserService;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,17 +39,17 @@ public class FlagController {
     @Autowired
     private CheckValidator checkValidator;
 
-    @Value("${buddyserver.token.header}")
-    private String tokenHeader;
+    @Autowired
+    private TokenService tokenService;
 
     @RequestMapping(value = "/flag", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseValue flag(@RequestBody ListRequest listRequest, @RequestHeader HttpHeaders headers) {
+    public ResponseEntity<?> flag(
+            @RequestBody ListRequest listRequest, 
+            @RequestHeader HttpHeaders headers) {
 
-        ResponseValue responsevalue = new ResponseValue();
-
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
+        String username = tokenService.getUserName(headers);
+        
         User user = userService.findUserByUsername(username);
 
         if (checkValidator.checkIfFlaged(listRequest.getPid(), username)) {
@@ -61,8 +60,7 @@ public class FlagController {
             flagService.create(listRequest.getPid(), user.getId());
         }
 
-        responsevalue.setResponsevalue(new ErrorCode().Success());
-        return responsevalue;
+        return ResponseEntity.ok(new ResponseValue(new ErrorCode().Success()));
     }
 
 }

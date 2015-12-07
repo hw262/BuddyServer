@@ -12,11 +12,10 @@ import com.sil.buddyserver.domain.entity.Post;
 import com.sil.buddyserver.domain.validator.CheckValidator;
 import com.sil.buddyserver.model.entity.PostModel;
 import com.sil.buddyserver.model.list.ListRequest;
-import com.sil.buddyserver.security.TokenUtils;
 import com.sil.buddyserver.service.HugService;
 import com.sil.buddyserver.service.PostService;
+import com.sil.buddyserver.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,8 +41,8 @@ public class PostController {
     @Autowired
     private CheckValidator checkValidator;
 
-    @Value("${buddyserver.token.header}")
-    private String tokenHeader;
+    @Autowired
+    private TokenService tokenService;
 
     @RequestMapping(value = "/post/create", method = RequestMethod.POST)
     @ResponseBody
@@ -51,18 +50,14 @@ public class PostController {
             @RequestBody Post post,
             @RequestHeader HttpHeaders headers) {
 
-        ResponseValue responseValue = new ResponseValue();
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
+        String username = tokenService.getUserName(headers);
 
         try {
             postService.create(post, username);
         } catch (Exception ex) {
-            responseValue.setResponsevalue(new ErrorCode().Fail());
-            ResponseEntity.ok(responseValue);
+            return ResponseEntity.ok(new ResponseValue(new ErrorCode().Fail()));
         }
-        responseValue.setResponsevalue(new ErrorCode().Success());
-        return ResponseEntity.ok(responseValue);
+        return ResponseEntity.ok(new ResponseValue(new ErrorCode().Success()));
     }
 
     @RequestMapping(value = "/post/list", method = RequestMethod.POST)
@@ -71,8 +66,7 @@ public class PostController {
             @RequestBody ListRequest listRequest,
             @RequestHeader HttpHeaders headers) {
 
-        List<String> token = headers.get(tokenHeader);
-        String username = TokenUtils.getUsernameFromToken(token.get(0));
+        String username = tokenService.getUserName(headers);
         List<PostModel> postList;
 
         if (listRequest.getAttention() == 1) {
@@ -88,17 +82,29 @@ public class PostController {
                     checkIfHugged(postList.get(i).getPid(), username)) {
 
                 postList.get(i).setHuged(1);
+            } else {
+                postList.get(i).setHuged(0);
             }
-            postList.get(i).setAttention(0);
 
             if (checkValidator.
                     checkIfAttentioned(postList.get(i).getPid(), username)) {
 
                 postList.get(i).setAttention(1);
+            } else {
+                postList.get(i).setAttention(0);
+            }
+
+            if (checkValidator.
+                    checkIfFlaged(postList.get(i).getPid(), username)) {
+
+                postList.get(i).setFlag(1);
+            } else {
+                postList.get(i).setFlag(0);
             }
 
             postList.get(i).
                     setHug(hugService.countByPid(postList.get(i).getPid()));
+
         }
         return ResponseEntity.ok(postList);
     }

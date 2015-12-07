@@ -22,4 +22,6 @@ public interface HugRepository extends JpaRepository<Hug, Long>{
 
     public Page<Hug> findByPid(long pid, Pageable pageable);
 
+    public Hug findByPidAndUid(long pid, long id);
+
 }

@@ -5,15 +5,13 @@
  */
 package com.sil.buddyserver.controller;
 
-import com.sil.buddyserver.domain.entity.Profile;
 import com.sil.buddyserver.response.ErrorCode;
 import com.sil.buddyserver.domain.entity.User;
-import com.sil.buddyserver.repository.ProfileRepository;
 import com.sil.buddyserver.response.ResponseValue;
+import com.sil.buddyserver.service.ProfileService;
 import com.sil.buddyserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,32 +29,24 @@ public class RegisterController {
     private UserService userService;
     
     @Autowired
-    private ProfileRepository profileRepository;
+    private ProfileService profileService;
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseValue register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user) {
 
         ResponseValue responsevalue = new ResponseValue();
 
         try {
-            String password = user.getPassword();
-            user.setPassword(passwordEncoder().encode(password));
-            user.setAuthorities("USER");
             userService.create(user);
-            Profile profile = new Profile();
-            profileRepository.save(profile);
+            profileService.create(user);
         } catch (Exception ex) {
             responsevalue.setResponsevalue(new ErrorCode().UsernameOccupied());
-            return responsevalue;
+            return ResponseEntity.ok(responsevalue);
         }
 
         responsevalue.setResponsevalue(new ErrorCode().Success());
-        return responsevalue;
+        return ResponseEntity.ok(responsevalue);
 
-    }
-
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

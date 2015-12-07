@@ -21,7 +21,7 @@ public class FlagService {
 
     @Autowired
     private FlagRepository flagRepository;
-    
+
     @Autowired
     private PostRepository postRepository;
 
@@ -34,14 +34,17 @@ public class FlagService {
         flagRepository.delete(flag.getFid());
         Post post = postRepository.findByPid(pid);
         post.setFlag(post.getFlag() - 1);
+        postRepository.save(post);
     }
 
     public void create(long pid, long uid) {
         Flag flag = new Flag();
         flag.setPid(pid);
         flag.setUid(uid);
+        flagRepository.save(flag);
         Post post = postRepository.findByPid(pid);
         post.setFlag(post.getFlag() + 1);
+        postRepository.save(post);
     }
 
     public long countByPidAndUid(long pid, long uid) {

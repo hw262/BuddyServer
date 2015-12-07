@@ -10,8 +10,10 @@ import com.sil.buddyserver.domain.entity.User;
 import com.sil.buddyserver.model.entity.PostModel;
 import com.sil.buddyserver.model.list.ListRequest;
 import com.sil.buddyserver.repository.PostRepository;
+import com.sil.buddyserver.repository.UserRepository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,19 +33,19 @@ public class PostService {
     private PostRepository postRepository;
 
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     public List<PostModel> findAll(ListRequest listRequest) {
         final PageRequest page1 = new PageRequest(
-                listRequest.getStart(), 
-                listRequest.getCount(), 
-                Sort.Direction.DESC, 
+                listRequest.getStart(),
+                listRequest.getCount(),
+                Sort.Direction.DESC,
                 "pid");
-        
+
         Page<Post> pPage = postRepository.findAll(page1);
         List<Post> pList = pPage.getContent();
         ArrayList postList = new ArrayList();
-        
+
         for (int i = 0; i < pList.size(); i++) {
             postList.add(i, new PostModel(pList.get(i)));
         }
@@ -52,10 +54,10 @@ public class PostService {
     }
 
     public Post create(Post post, String username) {
-        Date date = new Date();
+        Date date = Calendar.getInstance().getTime();
         post.setDate_time(new Timestamp(date.getTime()));
         post.setUsername(username);
-        User user = userService.findUserByUsername(username);
+        User user = userRepository.findUserByUsername(username);
         post.setUid(user.getId());
         return postRepository.save(post);
     }
@@ -78,11 +80,11 @@ public class PostService {
 
     public List<PostModel> findAttention(ListRequest listRequest) {
         final PageRequest page1 = new PageRequest(
-                listRequest.getStart(), 
-                listRequest.getCount(), 
-                Sort.Direction.DESC, 
+                listRequest.getStart(),
+                listRequest.getCount(),
+                Sort.Direction.DESC,
                 "pid");
-        
+
         Page<Post> pPage = postRepository.findByAttentionGreaterThan(1, page1);
         List<Post> pList = pPage.getContent();
         ArrayList postList = new ArrayList();
